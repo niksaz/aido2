@@ -1,0 +1,9 @@
+data/*
+model/*
+tboard/*
+
+.DS_Store
+
+.idea/
+__pycache__/
+.ipynb_checkpoints/
