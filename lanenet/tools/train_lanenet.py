@@ -116,8 +116,8 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
         with tf.control_dependencies(update_ops):
             optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
             gvs = optimizer.compute_gradients(loss=total_loss, var_list=tf.trainable_variables())
-            # capped_gvs = [(tf.clip_by_value(grad, -0.1, 0.1), var) for grad, var in gvs]
-            optimizer = optimizer.apply_gradients(gvs, global_step=global_step)
+            capped_gvs = [(tf.clip_by_value(grad, -0.1, 0.1), var) for grad, var in gvs]
+            optimizer = optimizer.apply_gradients(capped_gvs, global_step=global_step)
 
     # Set tf saver
     saver = tf.train.Saver()
@@ -125,7 +125,7 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
     if not ops.exists(model_save_dir):
         os.makedirs(model_save_dir)
     train_start_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-    model_name = 'lanenet_vgg_{:s}.ckpt'.format(net_flag, str(train_start_time))
+    model_name = f'lanenet_{net_flag}_{train_start_time}.ckpt'
     model_save_path = ops.join(model_save_dir, model_name)
 
     # Set tf summary
