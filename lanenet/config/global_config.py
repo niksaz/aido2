@@ -27,7 +27,7 @@ __C.TRAIN.TEST_DISPLAY_STEP = 1000
 # Set the momentum parameter of the optimizer
 __C.TRAIN.MOMENTUM = 0.9
 # Set the initial learning rate
-__C.TRAIN.LEARNING_RATE = 5e-5
+__C.TRAIN.LEARNING_RATE = 5e-4
 # Set the GPU resource used during training process
 __C.TRAIN.GPU_MEMORY_FRACTION = 0.85
 # Set the GPU allow growth parameter during tensorflow training process
