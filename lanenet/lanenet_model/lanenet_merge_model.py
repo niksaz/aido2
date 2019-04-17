@@ -131,7 +131,8 @@ class LaneNet(cnn_basenet.CNNBaseModel):
                 'binary_seg_logits': decode_logits,
                 'instance_seg_logits': pix_embedding,
                 'binary_seg_loss': binary_segmenatation_loss,
-                'discriminative_loss': disc_loss
+                'discriminative_loss': disc_loss,
+                'l2_reg_loss': l2_reg_loss,
             }
 
             return ret

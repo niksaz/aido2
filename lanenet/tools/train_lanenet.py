@@ -92,6 +92,7 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
                                        instance_label=instance_label_tensor, name='lanenet_model')
         total_loss = compute_ret['total_loss']
         binary_seg_loss = compute_ret['binary_seg_loss']
+        l2_reg_loss = compute_ret['l2_reg_loss']
         disc_loss = compute_ret['discriminative_loss']
         pix_embedding = compute_ret['instance_seg_logits']
 
@@ -114,14 +115,10 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
                                                    staircase=True)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            optimizer = tf.train.MomentumOptimizer(
-                learning_rate=learning_rate, momentum=0.9).minimize(loss=total_loss,
-                                                                    var_list=tf.trainable_variables(),
-                                                                    global_step=global_step)
-            # optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
-            # gvs = optimizer.compute_gradients(loss=total_loss, var_list=tf.trainable_variables())
-            # capped_gvs = [(tf.clip_by_value(grad, -0.1, 0.1), var) for grad, var in gvs]
-            # optimizer = optimizer.apply_gradients(capped_gvs, global_step=global_step)
+            optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
+            gvs = optimizer.compute_gradients(loss=total_loss, var_list=tf.trainable_variables())
+            capped_gvs = [(tf.clip_by_value(grad, -1.0, 1.0), var) for grad, var in gvs]
+            optimizer = optimizer.apply_gradients(capped_gvs, global_step=global_step)
 
     # Set tf saver
     saver = tf.train.Saver()
@@ -207,12 +204,13 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
                     train_dataset.next_batch(CFG.TRAIN.BATCH_SIZE)
             phase_train = 'train'
 
-            _, c, train_accuracy, train_summary, binary_loss, instance_loss, embedding, binary_seg_img = \
+            _, c, train_accuracy, train_summary, binary_loss, instance_loss, l2_loss, embedding, binary_seg_img = \
                 sess.run([optimizer, total_loss,
                           accuracy,
                           train_merge_summary_op,
                           binary_seg_loss,
                           disc_loss,
+                          l2_reg_loss,
                           pix_embedding,
                           out_logits_out],
                          feed_dict={input_tensor: gt_imgs,
@@ -220,10 +218,11 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
                                     instance_label_tensor: instance_gt_labels,
                                     phase: phase_train})
 
-            if math.isnan(c) or math.isnan(binary_loss) or math.isnan(instance_loss):
+            if math.isnan(c) or math.isnan(binary_loss) or math.isnan(instance_loss) or math.isnan(l2_loss):
                 log.error('cost is: {:.5f}'.format(c))
                 log.error('binary cost is: {:.5f}'.format(binary_loss))
                 log.error('instance cost is: {:.5f}'.format(instance_loss))
+                log.error('l2 loss is: {:.5f}'.format(l2_loss))
                 cv2.imwrite('nan_image.png', gt_imgs[0] + CFG.TRAIN.CHANNEL_MEANS)
                 cv2.imwrite('nan_instance_label.png', instance_gt_labels[0])
                 cv2.imwrite('nan_binary_label.png', binary_gt_labels[0] * 255)
@@ -267,16 +266,15 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
             val_cost_time_mean.append(cost_time_val)
 
             if epoch % CFG.TRAIN.DISPLAY_STEP == 0:
-                log.info('Epoch: {:d} total_loss= {:6f} binary_seg_loss= {:6f} instance_seg_loss= {:6f} accuracy= {:6f}'
-                         ' mean_cost_time= {:5f}s '.
-                         format(epoch + 1, c, binary_loss, instance_loss, train_accuracy,
+                log.info('Epoch: {:d} total_loss={:6f} binary_seg_loss={:6f} instance_seg_loss={:6f} '
+                         'l2_reg_loss={:6f} accuracy={:6f} mean_cost_time={:5f}s'.
+                         format(epoch + 1, c, binary_loss, instance_loss, l2_loss, train_accuracy,
                                 np.mean(train_cost_time_mean)))
                 train_cost_time_mean.clear()
 
             if epoch % CFG.TRAIN.TEST_DISPLAY_STEP == 0:
-                log.info('Epoch_Val: {:d} total_loss= {:6f} binary_seg_loss= {:6f} '
-                         'instance_seg_loss= {:6f} accuracy= {:6f} '
-                         'mean_cost_time= {:5f}s '.
+                log.info('Epoch_Val: {:d} total_loss={:6f} binary_seg_loss={:6f} '
+                         'instance_seg_loss={:6f} accuracy={:6f} mean_cost_time= {:5f}s'.
                          format(epoch + 1, c_val, val_binary_seg_loss, val_instance_seg_loss, val_accuracy,
                                 np.mean(val_cost_time_mean)))
                 val_cost_time_mean.clear()
