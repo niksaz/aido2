@@ -116,9 +116,10 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
                                                    staircase=True)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
-            gvs = optimizer.compute_gradients(loss=total_loss, var_list=tf.trainable_variables())
-            # capped_gvs = [(tf.clip_by_value(grad, -1.0, 1.0), var) for grad, var in gvs]
+            optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=CFG.TRAIN.MOMENTUM)
+            gradients, variables = zip(*optimizer.compute_gradients(loss=total_loss, var_list=tf.trainable_variables()))
+            gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+            gvs = zip(gradients, variables)
             optimizer = optimizer.apply_gradients(gvs, global_step=global_step)
 
     # Set tf saver
