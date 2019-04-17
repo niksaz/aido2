@@ -38,9 +38,11 @@ __C.TRAIN.BATCH_SIZE = 8
 # Set the shadownet validation batch size
 __C.TRAIN.VAL_BATCH_SIZE = 8
 # Set the learning rate decay steps
-__C.TRAIN.LR_DECAY_STEPS = 1000
+__C.TRAIN.LR_DECAY_STEPS = 10000
 # Set the learning rate decay rate
 __C.TRAIN.LR_DECAY_RATE = 0.1
+# Total loss's coefficient for the L2 weights regularization
+__C.TRAIN.L2_REG_LOSS_COEF = 1e-6
 # Set the class numbers
 __C.TRAIN.CLASSES_NUMS = 2
 # Set the image height

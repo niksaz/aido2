@@ -74,7 +74,7 @@ class LaneNet(cnn_basenet.CNNBaseModel):
                                                                      'Dense_Block_3'])
                 return decode_ret
 
-    def compute_loss(self, input_tensor, binary_label, instance_label, name):
+    def compute_loss(self, input_tensor, binary_label, instance_label, name, l2_reg_loss_coef):
         """
         计算LaneNet模型损失函数
         :param input_tensor:
@@ -123,8 +123,10 @@ class LaneNet(cnn_basenet.CNNBaseModel):
                     continue
                 else:
                     l2_reg_loss = tf.add(l2_reg_loss, tf.nn.l2_loss(vv))
-            l2_reg_loss *= 0.001
-            total_loss = 0.5 * binary_segmenatation_loss + 0.5 * disc_loss + l2_reg_loss
+            binary_segmenatation_loss *= 0.5
+            disc_loss *= 0.5
+            l2_reg_loss *= l2_reg_loss_coef
+            total_loss = binary_segmenatation_loss + disc_loss + l2_reg_loss
 
             ret = {
                 'total_loss': total_loss,
@@ -167,7 +169,8 @@ if __name__ == '__main__':
     binary_label = tf.placeholder(dtype=tf.int64, shape=[1, 256, 512, 1], name='label')
     instance_label = tf.placeholder(dtype=tf.float32, shape=[1, 256, 512, 1], name='label')
     ret = model.compute_loss(input_tensor=input_tensor, binary_label=binary_label,
-                             instance_label=instance_label, name='loss')
+                             instance_label=instance_label, name='loss',
+                             l2_reg_loss_coef=1e-6)
     for vv in tf.trainable_variables():
         if 'bn' in vv.name:
             continue

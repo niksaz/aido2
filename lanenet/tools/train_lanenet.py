@@ -89,7 +89,8 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
 
         # calculate the loss
         compute_ret = net.compute_loss(input_tensor=input_tensor, binary_label=binary_label_tensor,
-                                       instance_label=instance_label_tensor, name='lanenet_model')
+                                       instance_label=instance_label_tensor, name='lanenet_model',
+                                       l2_reg_loss_coef=CFG.TRAIN.L2_REG_LOSS_COEF)
         total_loss = compute_ret['total_loss']
         binary_seg_loss = compute_ret['binary_seg_loss']
         l2_reg_loss = compute_ret['l2_reg_loss']
@@ -117,8 +118,8 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
         with tf.control_dependencies(update_ops):
             optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
             gvs = optimizer.compute_gradients(loss=total_loss, var_list=tf.trainable_variables())
-            capped_gvs = [(tf.clip_by_value(grad, -1.0, 1.0), var) for grad, var in gvs]
-            optimizer = optimizer.apply_gradients(capped_gvs, global_step=global_step)
+            # capped_gvs = [(tf.clip_by_value(grad, -1.0, 1.0), var) for grad, var in gvs]
+            optimizer = optimizer.apply_gradients(gvs, global_step=global_step)
 
     # Set tf saver
     saver = tf.train.Saver()
@@ -279,11 +280,13 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
                                 np.mean(val_cost_time_mean)))
                 val_cost_time_mean.clear()
 
-            if epoch % 2000 == 0:
-                saver.save(sess=sess, save_path=model_save_path, global_step=epoch)
+            if epoch < 10000:
+                if epoch % 1000 == 0:
+                    saver.save(sess=sess, save_path=model_save_path, global_step=epoch)
+            else:
+                if epoch % 5000 == 0:
+                    saver.save(sess=sess, save_path=model_save_path, global_step=epoch)
     sess.close()
-
-    return
 
 
 if __name__ == '__main__':
