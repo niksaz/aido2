@@ -29,7 +29,6 @@ def main():
     filenames = list(sorted(IMAGE_DIR.glob('*.png')))
     for filename in np.random.choice(filenames, 5, replace=False):
         infer_and_visualize_image(str(filename), lane_net_predictor)
-    return
 
     IMAGE_DIR = Path('/Users/niksaz/4-JetBrains/dataset-val/gt_image')
     filenames = list(sorted(IMAGE_DIR.glob('*.png')))

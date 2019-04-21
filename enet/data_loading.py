@@ -1,0 +1,105 @@
+# Author: Mikita Sazanovich
+
+import random
+import os
+import cv2
+import numpy as np
+from typing import List, Tuple
+
+
+class Dataset:
+
+    def __init__(self,
+                 data_dir: str,
+                 image_pair_paths: List[Tuple[str, str]],
+                 mean_channels: np.ndarray,
+                 img_height: int,
+                 img_width: int,
+                 no_of_classes: int):
+
+        self.data_dir = data_dir
+        self.image_pair_paths = image_pair_paths
+        self.image_pair_index = 0
+        self.reset()
+
+        self.mean_channels = mean_channels
+
+        self.img_height = img_height
+        self.img_width = img_width
+        self.no_of_classes = no_of_classes
+
+    def reset(self):
+        random.shuffle(self.image_pair_paths)
+        self.image_pair_index = 0
+
+    def preprocess_path(self, path: str) -> str:
+        return os.path.join(
+            self.data_dir, path.replace('/Users/niksaz/4-JetBrains/aido2/segmentation/data/', '',))
+
+    def _get_next_image(self) -> Tuple[np.ndarray, np.ndarray]:
+        if self.image_pair_index == len(self.image_pair_paths):
+            self.reset()
+            return self._get_next_image()
+        else:
+            image_path, trainId_label_path = self.image_pair_paths[self.image_pair_index]
+            self.image_pair_index += 1
+
+            # read the next img:
+            img = cv2.imread(self.preprocess_path(image_path), -1)
+            height_to_drop = img.shape[0] // 3
+            img = img[height_to_drop:, :, :]
+            img = cv2.resize(
+                img, (self.img_width, self.img_height), interpolation=cv2.INTER_NEAREST)
+            img = img - self.mean_channels
+
+            # read the next label:
+            trainId_label = cv2.imread(self.preprocess_path(trainId_label_path), -1)
+            trainId_label = trainId_label[height_to_drop:, :]
+            trainId_label = cv2.resize(
+                trainId_label, (self.img_width, self.img_height), interpolation=cv2.INTER_NEAREST)
+
+            # convert the label to onehot:
+            onehot_label = np.zeros(
+                (self.img_height, self.img_width, self.no_of_classes), dtype=np.float32)
+            layer_idx = np.arange(self.img_height).reshape(self.img_height, 1)
+            component_idx = np.tile(np.arange(self.img_width), (self.img_height, 1))
+            onehot_label[layer_idx, component_idx, trainId_label] = 1
+
+            return img, onehot_label
+
+    def get_next_batch(self, batch_size):
+        assert batch_size <= len(self.image_pair_paths)
+
+        batch_imgs = np.zeros((batch_size, self.img_height, self.img_width, 3), dtype=np.float32)
+        batch_onehot_labels = np.zeros(
+            (batch_size, self.img_height, self.img_width, self.no_of_classes), dtype=np.float32)
+
+        for i in range(batch_size):
+            batch_imgs[i], batch_onehot_labels[i] = self._get_next_image()
+        return batch_imgs, batch_onehot_labels
+
+    def get_batches_in_dataset(self, batch_size):
+        return len(self.image_pair_paths) // batch_size
+
+
+if __name__ == '__main__':
+    data_dir = '/Users/niksaz/4-JetBrains/aido2/segmentation/data'
+    from pathlib import Path
+    data_path = Path(data_dir)
+    import numpy as np
+    import re
+    import pickle
+    np.random.seed(64)
+    img_paths = [str(path) for path in data_path.glob('*.png') if re.search(r'.*[0-9]+.png', str(path))]
+    img_paths = np.random.choice(img_paths, 16, replace=False)
+    label_paths = [img_path.replace('.png', '_label.png')for img_path in img_paths]
+    pairs = list(zip(img_paths, label_paths))
+    mean_channels_path = os.path.join(data_dir, 'mean_channels.pkl')
+    mean_channels = pickle.load(open(mean_channels_path, 'rb'))
+    from config import CFG
+    img_height = CFG.IMG_HEIGHT
+    img_width = CFG.IMG_WIDTH
+    no_of_classes = CFG.NUM_OF_CLASSES
+    dataset = Dataset(data_dir, pairs, mean_channels, img_height, img_width, no_of_classes)
+    for _ in range(dataset.get_batches_in_dataset(batch_size=4)):
+        imgs, labels = dataset.get_next_batch(batch_size=4)
