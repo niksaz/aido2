@@ -118,8 +118,9 @@ def train_net(dataset_dir, weights_path=None, net_flag='vgg'):
         with tf.control_dependencies(update_ops):
             optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=CFG.TRAIN.MOMENTUM)
             gradients, variables = zip(*optimizer.compute_gradients(loss=total_loss, var_list=tf.trainable_variables()))
-            gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
-            gvs = zip(gradients, variables)
+            capped_gradients = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients]
+            normed_gradients, _ = tf.clip_by_global_norm(capped_gradients, 5.0)
+            gvs = zip(normed_gradients, variables)
             optimizer = optimizer.apply_gradients(gvs, global_step=global_step)
 
     # Set tf saver

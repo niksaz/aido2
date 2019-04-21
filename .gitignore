@@ -4,6 +4,9 @@ tboard/*
 
 .DS_Store
 
+*.ipynb
+
 .idea/
 __pycache__/
 .ipynb_checkpoints/
+
