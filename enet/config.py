@@ -34,7 +34,7 @@ CFG.LABELS = [
     Label('background',         0,      0,          0,          (70,  70,  70 )),
     Label('road',               1,      1,          51,         (128, 64,  128)),
     Label('white marking',      2,      2,          255,        (230, 150, 140)),
-    Label('yellow marking',     3,      3,          179,        (70,  130, 180)),
+    Label('yellow marking',     3,      3,          226,        (70,  130, 180)),
 ]
 
 # The height all images fed to the model will be resized to

@@ -12,16 +12,30 @@ from enet.config import CFG
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('raw_dataset_dir', type=str, help='Dataset directory to process')
+    parser.add_argument('dataset_dir', type=str, help='Directory to save the dataset to')
     return parser.parse_args()
 
 
-def process_dir(dirname, raw_dataset_dir, project_data_dir, img_width, img_height, id_to_trainId_map_func):
+def preprocess_image(image, interpolation=None):
+    height_to_drop = image.shape[0] // 3
+    if len(image.shape) == 2:
+        image = image[height_to_drop:, :]
+    else:
+        image = image[height_to_drop:, :, :]
+    if interpolation is None:
+        image = cv2.resize(image, (CFG.IMG_WIDTH, CFG.IMG_HEIGHT))
+    else:
+        image = cv2.resize(image, (CFG.IMG_WIDTH, CFG.IMG_HEIGHT), interpolation=interpolation)
+    return image
+
+
+def process_dir(dirname, raw_dataset_dir, dataset_dir, id_to_trainId_map_func):
     proc_img_paths = []
     proc_trainId_label_paths = []
 
     dir_to_process = os.path.join(raw_dataset_dir, dirname)
     gt_image_dir = os.path.join(dir_to_process, 'gt_image')
-    gt_instance_dir = os.path.join(dir_to_process, 'gt_instance_image')
+    gt_seg_dir = os.path.join(dir_to_process, 'gt_seg')
     gt_image_path = pathlib.Path(gt_image_dir)
     img_paths = list(gt_image_path.glob('*.png'))
     for step, img_path in enumerate(img_paths):
@@ -35,11 +49,9 @@ def process_dir(dirname, raw_dataset_dir, project_data_dir, img_width, img_heigh
         img_path = os.path.join(gt_image_dir, img_name)
         img = cv2.imread(img_path, -1)
 
-        # resize the image without interpolation (want the image to still match
-        # the corresponding label image which we reisize below) and save to
-        # project_data_dir:
-        img_small = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_NEAREST)
-        img_small_path = os.path.join(project_data_dir, new_img_name)
+        # resize the image and save to project_data_dir:
+        img_small = preprocess_image(img)
+        img_small_path = os.path.join(dataset_dir, new_img_name)
         cv2.imwrite(img_small_path, img_small)
         assert os.path.exists(img_small_path)
         proc_img_paths.append(img_small_path)
@@ -47,9 +59,9 @@ def process_dir(dirname, raw_dataset_dir, project_data_dir, img_width, img_heigh
         # read and resize the corresponding label image without interpolation
         # (want the resulting image to still only contain pixel values
         # corresponding to an object class):
-        gt_img_path = os.path.join(gt_instance_dir, img_name)
+        gt_img_path = os.path.join(gt_seg_dir, img_name)
         gt_img = cv2.imread(gt_img_path, -1)
-        gt_img_small = cv2.resize(gt_img, (img_width, img_height), interpolation=cv2.INTER_NEAREST)
+        gt_img_small = preprocess_image(gt_img, interpolation=cv2.INTER_NEAREST)
 
         # convert the label image from id to trainId pixel values:
         id_label = gt_img_small
@@ -57,7 +69,7 @@ def process_dir(dirname, raw_dataset_dir, project_data_dir, img_width, img_heigh
 
         # save the label image to project_data_dir:
         label_img_name = f'{new_img_name.split(".png")[0]}_label.png'
-        trainId_label_path = os.path.join(project_data_dir, label_img_name)
+        trainId_label_path = os.path.join(dataset_dir, label_img_name)
         cv2.imwrite(trainId_label_path, trainId_label)
         assert os.path.exists(trainId_label_path)
         proc_trainId_label_paths.append(trainId_label_path)
@@ -68,8 +80,8 @@ def process_dir(dirname, raw_dataset_dir, project_data_dir, img_width, img_heigh
 def main():
     args = parse_args()
     raw_dataset_dir = args.raw_dataset_dir
-    project_data_dir = '/Users/niksaz/4-JetBrains/aido2/segmentation/data'
-    os.makedirs(project_data_dir, exist_ok=True)
+    dataset_dir = args.dataset_dir
+    os.makedirs(dataset_dir, exist_ok=True)
 
     # create a function mapping id to trainId:
     id_to_trainId = {label.gray_color: label.trainId for label in CFG.LABELS}
@@ -81,7 +93,7 @@ def main():
 
     # get the path to all training images and their corresponding label image:
     train_img_paths, train_trainId_label_paths = process_dir(
-        'train', raw_dataset_dir, project_data_dir, img_width, img_height, id_to_trainId_map_func)
+        'train', raw_dataset_dir, dataset_dir, id_to_trainId_map_func)
 
     # compute the mean color channels of the train imgs:
     print("computing mean color channels of the train imgs")
@@ -102,7 +114,7 @@ def main():
     mean_channels = mean_channels/float(no_of_train_imgs)
 
     # # save to disk:
-    mean_channels_path = os.path.join(project_data_dir, 'mean_channels.pkl')
+    mean_channels_path = os.path.join(dataset_dir, 'mean_channels.pkl')
     pickle.dump(mean_channels, open(mean_channels_path, 'wb'))
 
     # compute the class weights:
@@ -137,17 +149,17 @@ def main():
         class_weights.append(trainId_weight)
 
     # # save to disk:
-    class_weights_path = os.path.join(project_data_dir, 'class_weights.pkl')
+    class_weights_path = os.path.join(dataset_dir, 'class_weights.pkl')
     pickle.dump(class_weights, open(class_weights_path, 'wb'))
 
     # get the path to all validation images and their corresponding label image:
     val_img_paths, val_trainId_label_paths = process_dir(
-        'val', raw_dataset_dir, project_data_dir, img_width, img_height, id_to_trainId_map_func)
+        'val', raw_dataset_dir, dataset_dir, id_to_trainId_map_func)
 
     # # save the validation data to disk:
-    val_trainId_labels_path = os.path.join(project_data_dir, 'val_trainId_label_paths.pkl')
+    val_trainId_labels_path = os.path.join(dataset_dir, 'val_trainId_label_paths.pkl')
     pickle.dump(val_trainId_label_paths, open(val_trainId_labels_path, 'wb'))
-    val_imgs_path = os.path.join(project_data_dir, 'val_img_paths.pkl')
+    val_imgs_path = os.path.join(dataset_dir, 'val_img_paths.pkl')
     pickle.dump(val_img_paths, open(val_imgs_path, 'wb'))
 
     # augment the train data by flipping all train imgs:
@@ -192,9 +204,9 @@ def main():
     train_img_paths = list(train_img_paths)
     train_trainId_label_paths = list(train_trainId_label_paths)
 
-    train_img_paths_dump = os.path.join(project_data_dir, 'train_img_paths.pkl')
+    train_img_paths_dump = os.path.join(dataset_dir, 'train_img_paths.pkl')
     pickle.dump(train_img_paths, open(train_img_paths_dump, 'wb'))
-    train_trainId_label_paths_dump = os.path.join(project_data_dir, 'train_trainId_label_paths.pkl')
+    train_trainId_label_paths_dump = os.path.join(dataset_dir, 'train_trainId_label_paths.pkl')
     pickle.dump(train_trainId_label_paths, open(train_trainId_label_paths_dump, 'wb'))
 
     no_of_train_imgs = len(train_img_paths)

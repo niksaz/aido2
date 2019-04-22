@@ -46,16 +46,10 @@ class Dataset:
 
             # read the next img:
             img = cv2.imread(self.preprocess_path(image_path), -1)
-            height_to_drop = img.shape[0] // 3
-            img = img[height_to_drop:, :, :]
-            img = cv2.resize(img, (self.img_width, self.img_height))
             img = img - self.mean_channels
 
             # read the next label:
             trainId_label = cv2.imread(self.preprocess_path(trainId_label_path), -1)
-            trainId_label = trainId_label[height_to_drop:, :]
-            trainId_label = cv2.resize(
-                trainId_label, (self.img_width, self.img_height), interpolation=cv2.INTER_NEAREST)
 
             # convert the label to onehot:
             onehot_label = np.zeros(

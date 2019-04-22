@@ -185,7 +185,7 @@ def main() -> None:
             print("###########################")
 
             train_epoch_loss = do_train_for_number_of_batches(
-                model, epoch, no_of_epochs, train_dataset, batch_size, 250, sess)
+                model, epoch, no_of_epochs, train_dataset, batch_size, 500, sess)
 
             train_loss_per_epoch.append(train_epoch_loss)
             pickle.dump(train_loss_per_epoch, open(train_loss_per_epoch_path, 'wb'))
