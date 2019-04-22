@@ -18,8 +18,9 @@ from enet.model import ENetModel
 class EnetPredictor:
 
     def __init__(self, config_dir):
-        mean_channels_path = os.path.join(config_dir, 'mean_channels.pkl')
-        mean_channels = pickle.load(open(mean_channels_path, 'rb'))
+        # mean_channels_path = os.path.join(config_dir, 'mean_channels.pkl')
+        # mean_channels = pickle.load(open(mean_channels_path, 'rb'))
+        mean_channels = np.array([72.75416476, 90.21441009, 91.78922306])
         self.mean_channels = mean_channels
         self.batch_size = 1
         self.img_height = CFG.IMG_HEIGHT
@@ -27,6 +28,7 @@ class EnetPredictor:
         self.no_of_classes = CFG.NUM_OF_CLASSES
         self.model = ENetModel(self.batch_size, self.img_height, self.img_width, self.no_of_classes)
 
+        # checkpoint_dir = '/Users/niksaz/4-JetBrains/aido2/enet/logs/model_normed/checkpoints'
         checkpoint_name = 'model_epoch_90.ckpt'
         checkpoint_path = os.path.join(config_dir, checkpoint_name)
 

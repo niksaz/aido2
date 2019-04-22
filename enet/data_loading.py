@@ -48,8 +48,7 @@ class Dataset:
             img = cv2.imread(self.preprocess_path(image_path), -1)
             height_to_drop = img.shape[0] // 3
             img = img[height_to_drop:, :, :]
-            img = cv2.resize(
-                img, (self.img_width, self.img_height), interpolation=cv2.INTER_NEAREST)
+            img = cv2.resize(img, (self.img_width, self.img_height))
             img = img - self.mean_channels
 
             # read the next label:
@@ -96,7 +95,7 @@ if __name__ == '__main__':
     pairs = list(zip(img_paths, label_paths))
     mean_channels_path = os.path.join(data_dir, 'mean_channels.pkl')
     mean_channels = pickle.load(open(mean_channels_path, 'rb'))
-    from config import CFG
+    from enet.config import CFG
     img_height = CFG.IMG_HEIGHT
     img_width = CFG.IMG_WIDTH
     no_of_classes = CFG.NUM_OF_CLASSES
