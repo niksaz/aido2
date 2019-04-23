@@ -46,9 +46,13 @@ CFG.NUM_OF_CLASSES = len(CFG.LABELS)
 
 # Number of epochs to train the model on
 CFG.TRAIN_EPOCHS = 100
+# Number of batches in a training epoch
+CFG.TRAIN_EPOCH_BATCHES = 1000
 # The batch size used in the model
 CFG.BATCH_SIZE = 8
 # The weight decay that is applied to the model
 CFG.WEIGHT_DECAY = 2e-4
 # The learning rate for the training
 CFG.LEARNING_RATE = 5e-3
+# The maximum norm of a batch's gradient
+CFG.GRAD_NORM_CLIP_VALUE = 1.0

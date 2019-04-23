@@ -190,7 +190,7 @@ class ENetModel:
 
         self.logits = network
 
-    def add_train_op(self, class_weights, learning_rate):
+    def add_train_op(self, class_weights, learning_rate, grad_norm_clip_value):
         assert len(class_weights) == self.no_of_classes
         # compute the weight tensor:
         weights = self.onehot_labels_ph*class_weights
@@ -214,7 +214,7 @@ class ENetModel:
         gradients, variables = zip(
             *optimizer.compute_gradients(loss=self.loss, var_list=tf.trainable_variables()))
         self.grad_norm = tf.global_norm(gradients)
-        gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+        gradients, _ = tf.clip_by_global_norm(gradients, grad_norm_clip_value)
         self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
     def initial_block(self, x, scope):

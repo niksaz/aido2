@@ -19,15 +19,15 @@ from enet.model import ENetModel
 matplotlib.use('Agg')
 
 
-def do_train_for_number_of_batches(
+def do_training_epoch(
         model: ENetModel,
         epoch: int,
         number_of_epochs: int,
         dataset: Dataset,
         batch_size: int,
-        number_of_batches: int,
         sess: tf.Session) -> float:
     # run an epoch and get all batch losses:
+    number_of_batches = CFG.TRAIN_EPOCH_BATCHES
     batch_losses = np.zeros(number_of_batches)
     train_start = time.time()
     for batch_num in range(number_of_batches):
@@ -133,7 +133,7 @@ def main() -> None:
 
     class_weights_path = os.path.join(data_dir, 'class_weights.pkl')
     class_weights = pickle.load(open(class_weights_path, 'rb'))
-    model.add_train_op(class_weights, CFG.LEARNING_RATE)
+    model.add_train_op(class_weights, CFG.LEARNING_RATE, CFG.GRAD_NORM_CLIP_VALUE)
 
     model_logs_dir = args.logs_dir
     os.makedirs(model_logs_dir, exist_ok=True)
@@ -184,8 +184,8 @@ def main() -> None:
             print("######## NEW EPOCH ########")
             print("###########################")
 
-            train_epoch_loss = do_train_for_number_of_batches(
-                model, epoch, no_of_epochs, train_dataset, batch_size, 500, sess)
+            train_epoch_loss = do_training_epoch(
+                model, epoch, no_of_epochs, train_dataset, batch_size, sess)
 
             train_loss_per_epoch.append(train_epoch_loss)
             pickle.dump(train_loss_per_epoch, open(train_loss_per_epoch_path, 'wb'))
