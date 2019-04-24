@@ -34,7 +34,7 @@ class Dataset:
 
     def preprocess_path(self, path: str) -> str:
         return os.path.join(
-            self.data_dir, path.replace('/Users/niksaz/4-JetBrains/aido2/segmentation/data/', '',))
+            self.data_dir, path.replace('/data/sazanovich/duckscapes-x4/', '',))
 
     def _get_next_image(self) -> Tuple[np.ndarray, np.ndarray]:
         if self.image_pair_index == len(self.image_pair_paths):

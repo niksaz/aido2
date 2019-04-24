@@ -43,7 +43,7 @@ def do_training_epoch(
         batch_loss, grad_norm, _ = sess.run([model.loss, model.grad_norm, model.train_op], feed_dict=batch_feed_dict)
         batch_losses[batch_num] = batch_loss
 
-        if (batch_num + 1) % 10 == 0:
+        if (batch_num + 1) % 100 == 0:
             print(f'epoch: {epoch + 1}/{number_of_epochs}, '
                   f'train batch_num: {batch_num + 1}/{number_of_batches}, '
                   f'batch loss: {batch_loss}')
@@ -79,7 +79,7 @@ def do_evaluation(
         batch_loss, logits = sess.run([model.loss, model.logits], feed_dict=batch_feed_dict)
         batch_losses[batch_num] = batch_loss
 
-        if (batch_num + 1) % 10 == 0:
+        if (batch_num + 1) % 100 == 0:
             print(f'epoch: {epoch + 1}/{number_of_epochs}, '
                   f'val batch_num: {batch_num + 1}/{number_of_batches}, '
                   f'batch loss: {batch_loss}')

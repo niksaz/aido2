@@ -38,14 +38,14 @@ CFG.LABELS = [
 ]
 
 # The height all images fed to the model will be resized to
-CFG.IMG_HEIGHT = 160
+CFG.IMG_HEIGHT = 80
 # The width all images fed to the model will be resized to
-CFG.IMG_WIDTH = 320
+CFG.IMG_WIDTH = 160
 # Number of object classes (road, sidewalk, car etc.)
 CFG.NUM_OF_CLASSES = len(CFG.LABELS)
 
 # Number of epochs to train the model on
-CFG.TRAIN_EPOCHS = 100
+CFG.TRAIN_EPOCHS = 500
 # Number of batches in a training epoch
 CFG.TRAIN_EPOCH_BATCHES = 1000
 # The batch size used in the model

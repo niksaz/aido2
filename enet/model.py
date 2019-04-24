@@ -189,6 +189,7 @@ class ENetModel:
         print(network.get_shape().as_list())
 
         self.logits = network
+        self.softmax = tf.nn.softmax(self.logits)
 
     def add_train_op(self, class_weights, learning_rate, grad_norm_clip_value):
         assert len(class_weights) == self.no_of_classes
