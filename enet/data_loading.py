@@ -4,7 +4,9 @@ import random
 import os
 import cv2
 import numpy as np
+
 from typing import List, Tuple
+from enet.config import CFG
 
 
 class Dataset:
@@ -12,7 +14,6 @@ class Dataset:
     def __init__(self,
                  data_dir: str,
                  image_pair_paths: List[Tuple[str, str]],
-                 mean_channels: np.ndarray,
                  img_height: int,
                  img_width: int,
                  no_of_classes: int):
@@ -22,7 +23,7 @@ class Dataset:
         self.image_pair_index = 0
         self.reset()
 
-        self.mean_channels = mean_channels
+        self.mean_channels = CFG.IMG_MEAN_CHANNELS
 
         self.img_height = img_height
         self.img_width = img_width
@@ -34,7 +35,7 @@ class Dataset:
 
     def preprocess_path(self, path: str) -> str:
         return os.path.join(
-            self.data_dir, path.replace('/data/sazanovich/duckscapes-x4/', '',))
+            self.data_dir, path.replace('/Users/niksaz/4-JetBrains/generate-data/distscapes-4/', '',))
 
     def _get_next_image(self) -> Tuple[np.ndarray, np.ndarray]:
         if self.image_pair_index == len(self.image_pair_paths):
@@ -87,12 +88,10 @@ if __name__ == '__main__':
     img_paths = np.random.choice(img_paths, 16, replace=False)
     label_paths = [img_path.replace('.png', '_label.png')for img_path in img_paths]
     pairs = list(zip(img_paths, label_paths))
-    mean_channels_path = os.path.join(data_dir, 'mean_channels.pkl')
-    mean_channels = pickle.load(open(mean_channels_path, 'rb'))
     from enet.config import CFG
     img_height = CFG.IMG_HEIGHT
     img_width = CFG.IMG_WIDTH
     no_of_classes = CFG.NUM_OF_CLASSES
-    dataset = Dataset(data_dir, pairs, mean_channels, img_height, img_width, no_of_classes)
+    dataset = Dataset(data_dir, pairs, img_height, img_width, no_of_classes)
     for _ in range(dataset.get_batches_in_dataset(batch_size=4)):
         imgs, labels = dataset.get_next_batch(batch_size=4)

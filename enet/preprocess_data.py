@@ -17,15 +17,16 @@ def parse_args() -> argparse.Namespace:
 
 
 def preprocess_image(image, interpolation=None):
-    height_to_drop = image.shape[0] // 3
-    if len(image.shape) == 2:
-        image = image[height_to_drop:, :]
-    else:
-        image = image[height_to_drop:, :, :]
+    # resize the image
     if interpolation is None:
-        image = cv2.resize(image, (CFG.IMG_WIDTH, CFG.IMG_HEIGHT))
+        image = cv2.resize(image, (CFG.TO_IMG_WIDTH, CFG.TO_IMG_HEIGHT))
     else:
-        image = cv2.resize(image, (CFG.IMG_WIDTH, CFG.IMG_HEIGHT), interpolation=interpolation)
+        image = cv2.resize(image, (CFG.TO_IMG_WIDTH, CFG.TO_IMG_HEIGHT), interpolation=interpolation)
+    # crop the image
+    if len(image.shape) == 2:
+        image = image[-CFG.IMG_HEIGHT:, -CFG.IMG_WIDTH:]
+    else:
+        image = image[-CFG.IMG_HEIGHT:, -CFG.IMG_WIDTH:, :]
     return image
 
 

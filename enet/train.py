@@ -27,7 +27,8 @@ def do_training_epoch(
         batch_size: int,
         sess: tf.Session) -> float:
     # run an epoch and get all batch losses:
-    number_of_batches = CFG.TRAIN_EPOCH_BATCHES
+    dataset.reset()
+    number_of_batches = dataset.get_batches_in_dataset(batch_size)
     batch_losses = np.zeros(number_of_batches)
     train_start = time.time()
     for batch_num in range(number_of_batches):
@@ -146,19 +147,13 @@ def main() -> None:
     os.makedirs(model_checkpoints_dir, exist_ok=True)
     os.makedirs(model_debug_imgs_dir, exist_ok=True)
 
-    # load the mean color channels of the train imgs:
-    train_mean_channels_path = os.path.join(data_dir, 'mean_channels.pkl')
-    train_mean_channels = pickle.load(open(train_mean_channels_path, 'rb'))
-
     # load the training data from disk:
     train_data = read_dataset_image_paths(data_dir, 'train')
-    train_dataset = Dataset(
-        data_dir, train_data, train_mean_channels, img_height, img_width, no_of_classes)
+    train_dataset = Dataset(data_dir, train_data, img_height, img_width, no_of_classes)
 
     # load the validation data from disk:
     val_data = read_dataset_image_paths(data_dir, 'val')
-    val_dataset = Dataset(
-        data_dir, val_data, train_mean_channels, img_height, img_width, no_of_classes)
+    val_dataset = Dataset(data_dir, val_data, img_height, img_width, no_of_classes)
 
     no_of_epochs = CFG.TRAIN_EPOCHS
 
