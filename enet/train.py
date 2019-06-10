@@ -44,9 +44,9 @@ def do_training_epoch(
         batch_loss, grad_norm, _ = sess.run([model.loss, model.grad_norm, model.train_op], feed_dict=batch_feed_dict)
         batch_losses[batch_num] = batch_loss
 
-        if (batch_num + 1) % 100 == 0:
+        if batch_num % (number_of_batches // 10) == 0:
             print(f'epoch: {epoch + 1}/{number_of_epochs}, '
-                  f'train batch_num: {batch_num + 1}/{number_of_batches}, '
+                  f'train batch_num: {batch_num}/{number_of_batches}, '
                   f'batch loss: {batch_loss}')
             time_next = time.time()
             print(f'gradients norm: {grad_norm}')
@@ -80,9 +80,9 @@ def do_evaluation(
         batch_loss, logits = sess.run([model.loss, model.logits], feed_dict=batch_feed_dict)
         batch_losses[batch_num] = batch_loss
 
-        if (batch_num + 1) % 100 == 0:
+        if batch_num % (number_of_batches // 10) == 0:
             print(f'epoch: {epoch + 1}/{number_of_epochs}, '
-                  f'val batch_num: {batch_num + 1}/{number_of_batches}, '
+                  f'val batch_num: {batch_num}/{number_of_batches}, '
                   f'batch loss: {batch_loss}')
 
         if batch_num == 0:
@@ -170,6 +170,7 @@ def main() -> None:
     # save a model checkpoint):
     best_epoch_losses = [1000, 1000, 1000, 1000, 1000]
 
+    l_started = time.time()
     with tf.Session() as sess:
         init = tf.global_variables_initializer()
         sess.run(init)
@@ -222,6 +223,9 @@ def main() -> None:
             plt.title("validation loss per epoch")
             plt.savefig(os.path.join(model_dir, 'val_loss_per_epoch.png'))
             plt.close(1)
+    l_finished = time.time()
+    print(f'Learning started at {time.ctime(l_started)}')
+    print(f'Learning finished at {time.ctime(l_finished)}')
 
 
 if __name__ == '__main__':
