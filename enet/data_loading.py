@@ -88,7 +88,6 @@ if __name__ == '__main__':
     img_paths = np.random.choice(img_paths, 16, replace=False)
     label_paths = [img_path.replace('.png', '_label.png')for img_path in img_paths]
     pairs = list(zip(img_paths, label_paths))
-    from enet.config import CFG
     img_height = CFG.IMG_HEIGHT
     img_width = CFG.IMG_WIDTH
     no_of_classes = CFG.NUM_OF_CLASSES
