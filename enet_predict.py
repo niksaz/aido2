@@ -56,7 +56,7 @@ class EnetPredictor:
                                                       late_drop_prob=0.0)
         softmaxes = self.sess.run(self.model.softmax, feed_dict=batch_feed_dict)
 
-        img_to_show = img + self.mean_channels
+        img = img + self.mean_channels
         predictions = np.argmax(softmaxes, axis=3)
         predictions = predictions.squeeze()
 
@@ -74,7 +74,7 @@ class EnetPredictor:
 
         # This potential penalizes small pieces of segmentation that are
         # spatially isolated -- enforces more spatially consistent segmentations
-        feats = create_pairwise_gaussian(sdims=(5, 5), shape=img.shape[:2])
+        feats = create_pairwise_gaussian(sdims=(50, 50), shape=img.shape[:2])
 
         d.addPairwiseEnergy(feats, compat=3,
                             kernel=dcrf.DIAG_KERNEL,
@@ -91,7 +91,7 @@ class EnetPredictor:
         Q = d.inference(10)
 
         final_predictions = np.argmax(Q, axis=0).reshape((img.shape[0], img.shape[1]))
-        return img_to_show, predictions, final_predictions
+        return img, predictions, final_predictions
 
 
 def infer_and_visualize_subset_dir(

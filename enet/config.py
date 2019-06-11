@@ -56,7 +56,7 @@ CFG.IMG_MEAN_CHANNELS = np.array([
 ])
 
 # Number of epochs to train the model on
-CFG.TRAIN_EPOCHS = 50
+CFG.TRAIN_EPOCHS = 100
 # The batch size used in the model
 CFG.BATCH_SIZE = 8
 # The weight decay that is applied to the model
