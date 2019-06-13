@@ -4,7 +4,6 @@ from enet.utilities import PReLU, spatial_dropout, max_unpool
 
 
 class ENetModel:
-
     def __init__(self, batch_size, img_height, img_width, no_of_classes, weight_decay=0):
         self.batch_size = batch_size
         self.img_height = img_height

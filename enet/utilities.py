@@ -65,6 +65,7 @@ def max_unpool(inputs, pooling_indices, output_shape=None):
 
     return ret
 
+
 # function for colorizing a label image:
 def label_img_to_color(img):
     label_to_color = {label.trainId: label.bgr_color for label in CFG.LABELS}
