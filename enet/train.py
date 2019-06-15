@@ -119,6 +119,7 @@ def parse_args() -> argparse.Namespace:
                         default='/data/sazanovich/aido2/duckscapes/')
     parser.add_argument('--model_id', type=str, help='The model id that is used for storing it',
                         default='clipped')
+    parser.add_argument('--seed', type=int, help='The randomness seed to use', default=2)
     return parser.parse_args()
 
 
@@ -129,6 +130,7 @@ def main() -> None:
     batch_size = CFG.BATCH_SIZE
 
     args = parse_args()
+    np.random.seed(args.seed)
 
     data_dir = args.data_dir
     assert os.path.exists(data_dir)
