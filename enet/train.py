@@ -117,8 +117,6 @@ def parse_args() -> argparse.Namespace:
                         default='training_logs')
     parser.add_argument('--data_dir', type=str, help='The directory where the data is stored',
                         default='/data/sazanovich/aido2/duckscapes/')
-    parser.add_argument('--model_id', type=str, help='The model id that is used for storing it',
-                        default='clipped')
     parser.add_argument('--seed', type=int, help='The randomness seed to use', default=2)
     return parser.parse_args()
 
