@@ -1,6 +1,5 @@
 # Author: Mikita Sazanovich
 
-import random
 import os
 import cv2
 import numpy as np
@@ -29,7 +28,7 @@ class Dataset:
         self.no_of_classes = no_of_classes
 
     def reset(self):
-        random.shuffle(self.image_pair_paths)
+        np.random.shuffle(self.image_pair_paths)
         self.image_pair_index = 0
 
     def convert_filename_to_path(self, filename: str) -> str:
