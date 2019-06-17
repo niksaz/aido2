@@ -114,7 +114,7 @@ def read_dataset_image_paths(data_dir: str, data_part: str) -> List[Tuple[str, s
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('--logs_dir', type=str, help='The directory to write logs to',
-                        default='training_logs')
+                        default='logs')
     parser.add_argument('--data_dir', type=str, help='The directory where the data is stored',
                         default='/data/sazanovich/aido2/duckscapes/')
     parser.add_argument('--seed', type=int, help='The randomness seed to use', default=2)
