@@ -128,16 +128,15 @@ def main() -> None:
     batch_size = CFG.BATCH_SIZE
 
     args = parse_args()
-
-    data_dir = args.data_dir
-    assert os.path.exists(data_dir)
-
-    model = ENetModel(batch_size, img_height, img_width, CFG.NUM_OF_CLASSES, CFG.WEIGHT_DECAY)
     np.random.seed(args.seed)
     tf.set_random_seed(args.seed)
 
+    data_dir = args.data_dir
+    assert os.path.exists(data_dir)
     class_weights_path = os.path.join(data_dir, 'class_weights.pkl')
     class_weights = pickle.load(open(class_weights_path, 'rb'))
+
+    model = ENetModel(batch_size, img_height, img_width, CFG.NUM_OF_CLASSES, CFG.WEIGHT_DECAY)
     model.add_train_op(class_weights, CFG.LEARNING_RATE, CFG.GRAD_NORM_CLIP_VALUE)
 
     model_logs_dir = args.logs_dir
