@@ -50,9 +50,9 @@ CFG.IMG_WIDTH = 160
 CFG.NUM_OF_CLASSES = len(CFG.LABELS)
 # The mean channel values of non-randomized gym simulator
 CFG.IMG_MEAN_CHANNELS = np.array([
-    94.8360107421875,
-    115.62642578125002,
-    115.033681640625,
+    89.5811047363281,
+    114.80708251953124,
+    114.6916564941406,
 ])
 
 # Number of epochs to train the model on
