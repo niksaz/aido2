@@ -47,7 +47,7 @@ def do_training_epoch(
         pixels_total += labels.size
 
         if number_of_batches >= 10 and batch_num % (number_of_batches // 10) == 0:
-            print(f'epoch: {epoch + 1}/{number_of_epochs}, '
+            print(f'epoch: {epoch}/{number_of_epochs}, '
                   f'train batch_num: {batch_num}/{number_of_batches}, '
                   f'batch loss: {batch_loss}')
             print(f'gradients norm: {grad_norm}')
@@ -86,7 +86,7 @@ def do_evaluation(
         pixels_total += labels.size
 
         if number_of_batches >= 10 and batch_num % (number_of_batches // 10) == 0:
-            print(f'epoch: {epoch + 1}/{number_of_epochs}, '
+            print(f'epoch: {epoch}/{number_of_epochs}, '
                   f'val batch_num: {batch_num}/{number_of_batches}, '
                   f'batch loss: {batch_loss}')
 
@@ -95,7 +95,7 @@ def do_evaluation(
             for i in range(batch_size):
                 pred_img = predictions[i]
                 label_img_color = label_img_to_color(pred_img)
-                label_img_path = os.path.join(eval_img_dir, f'val_{epoch + 1}_{batch_num}_{i}.png')
+                label_img_path = os.path.join(eval_img_dir, f'val_{epoch}_{batch_num}_{i}.png')
                 cv2.imwrite(label_img_path, label_img_color)
 
     # compute the val mean loss and accuracy
@@ -173,7 +173,20 @@ def main() -> None:
         init = tf.global_variables_initializer()
         sess.run(init)
 
-        for epoch in range(no_of_epochs):
+        pretraining_epoch_num = 0
+        train_epoch_loss, train_acc = do_evaluation(
+            model, pretraining_epoch_num, no_of_epochs, train_dataset, batch_size, model_debug_imgs_dir, sess)
+        val_epoch_loss, val_acc = do_evaluation(
+            model, pretraining_epoch_num, no_of_epochs, val_dataset, batch_size, model_debug_imgs_dir, sess)
+        summary = tf.Summary(
+            value=[
+                tf.Summary.Value(tag='train_epoch_loss', simple_value=train_epoch_loss),
+                tf.Summary.Value(tag='train_acc', simple_value=train_acc),
+                tf.Summary.Value(tag='val_epoch_loss', simple_value=val_epoch_loss),
+                tf.Summary.Value(tag='val_acc', simple_value=val_acc)])
+        summary_writer.add_summary(summary, pretraining_epoch_num)
+
+        for epoch in range(1, no_of_epochs + 1):
             print("#"*45, "NEW EPOCH", "#"*45)
 
             time_checkpoint = time.time()
@@ -199,7 +212,7 @@ def main() -> None:
 
             if val_epoch_loss < max(best_epoch_losses):  # (if top 5 performance on val:)
                 # save the model weights to disk:
-                checkpoint_path = os.path.join(model_checkpoints_dir, f'model_epoch_{epoch+1}.ckpt')
+                checkpoint_path = os.path.join(model_checkpoints_dir, f'model_epoch_{epoch}.ckpt')
                 saver.save(sess, checkpoint_path)
                 print(f'checkpoint saved in file: {checkpoint_path}')
                 # update the top 5 val losses:
