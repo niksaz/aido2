@@ -36,7 +36,7 @@ def main():
     os.makedirs(str(logs_dir), exist_ok=True)
 
     for filepath in datasets_dir.glob('*'):
-        if 'duckscapes' not in filepath.name:
+        if 'distscapes' not in filepath.name:
             continue
         np.random.seed(27)
         seed_values = np.random.random_integers(0, 2*10**9, seeds)
