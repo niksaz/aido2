@@ -21,26 +21,29 @@ def compile_training_cmd_string(logs_dir: pathlib.Path, data_dir: pathlib.Path, 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('--logs_dir', type=str, help='The directory to write logs to', default='logs')
-    parser.add_argument('--data_dir', type=str, help='The directory where the data is stored',
-                        default='/data/sazanovich/aido2/duckscapes/')
-    parser.add_argument('--seeds', type=int, help='The number of seeds to use', default=1)
+    parser.add_argument('--datasets_dir', type=str, help='The directory where the datasets to run on are stored',
+                        default='/data/sazanovich/aido2/')
+    parser.add_argument('--seeds', type=int, help='The number of seeds to use for each dataset', default=1)
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     logs_dir = pathlib.Path(args.logs_dir).absolute()
-    data_dir = pathlib.Path(args.data_dir).absolute()
+    datasets_dir = pathlib.Path(args.datasets_dir).absolute()
     seeds = args.seeds
 
     os.makedirs(str(logs_dir), exist_ok=True)
 
-    np.random.seed(27)
-    seed_values = np.random.random_integers(0, 2*10**9, seeds)
-    for seed in seed_values:
-        cmd = compile_training_cmd_string(logs_dir, data_dir, seed)
-        print(cmd)
-        run_cmd(cmd)
+    for filepath in datasets_dir.glob('*'):
+        if 'duckscapes' not in filepath.name:
+            continue
+        np.random.seed(27)
+        seed_values = np.random.random_integers(0, 2*10**9, seeds)
+        for seed in seed_values:
+            cmd = compile_training_cmd_string(logs_dir, data_dir=filepath, seed=seed)
+            print(cmd)
+            run_cmd(cmd)
 
 
 if __name__ == '__main__':
